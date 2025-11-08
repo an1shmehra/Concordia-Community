@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/reddit-details.css}">
+    <title th:text="${post.title}">Post Details</title>
+</head>
+<body>
+<h1 th:text="${post.title}"></h1>
+<p>by <strong th:text="${post.author}"></strong></p>
+<p th:if="${post.selftext}"><strong>Description:</strong> <span th:text="${post.selftext}"></span></p>
+<p>
+    <strong>Original URL:</strong>
+    <a th:href="${post.url}" target="_blank" th:text="${post.url}"></a>
+</p>
+<p><a th:href="@{/api/reddit/posts}">Back to list</a></p>
+</body>
+</html>

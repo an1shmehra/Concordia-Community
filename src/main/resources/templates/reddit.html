@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/reddit.css}">
+    <title>r/concordia Posts</title>
+</head>
+<body>
+<h1>r/concordia Posts</h1>
+<ul>
+    <li th:each="post, iter : ${posts}">
+        <a th:href="@{/api/reddit/{index}(index=${iter.index})}" th:text="${post.title}"></a>
+        by <span th:text="${post.author}"></span>
+    </li>
+</ul>
+</body>
+</html>
