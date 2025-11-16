@@ -27,7 +27,7 @@ public class RedditService {
     }
 
     public List<RedditPost> getConcordiaPosts() {
-        String url = "https://oauth.reddit.com/r/concordia/new"; // or /hot, /top
+        String url = "https://oauth.reddit.com/r/concordia/new";
 
         // Set headers
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();

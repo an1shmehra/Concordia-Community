@@ -6,11 +6,37 @@
 </head>
 <body>
 <h1>r/concordia Posts</h1>
+
+<form th:action="@{/api/reddit/posts}" method="get" class="search-form">
+    <input type="text" name="q" placeholder="Search by title, course, or term"
+           th:value="${query}" class="search-box">
+    <button type="submit">Search</button>
+</form>
+
+<p th:if="${notFoundMessage}" th:text="${notFoundMessage}" class="not-found"></p>
+
 <ul>
     <li th:each="post, iter : ${posts}">
         <a th:href="@{/api/reddit/{index}(index=${iter.index})}" th:text="${post.title}"></a>
         by <span th:text="${post.author}"></span>
     </li>
 </ul>
+
+<script>
+    (function(){
+        var input = document.querySelector('input[name="q"]');
+        if (!input) return;
+        var last = input.value.trim();
+        input.addEventListener('input', function(){
+            var val = input.value.trim();
+            if (val === '' && last !== '') {
+                // When cleared, navigate to the base posts URL to refresh the list
+                window.location.href = '/api/reddit/posts';
+            }
+            last = val;
+        });
+    })();
+</script>
+
 </body>
 </html>
