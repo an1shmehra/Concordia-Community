@@ -73,12 +73,12 @@ public class RedditController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/posts")
+/*    @GetMapping("/posts")
     public String getRedditPosts(Model model) {
         List<RedditPost> posts = redditService.getConcordiaPosts(20);
         model.addAttribute("posts", posts);
         return "reddit"; // Thymeleaf template
-    }
+    }*/
 
     @GetMapping("/import")
     public ResponseEntity<String> importConcordiaPosts() {
@@ -86,8 +86,9 @@ public class RedditController {
         return ResponseEntity.ok("Saved " + saved.size() + " posts");
     }
 
+    @GetMapping("/posts")
     public String getRedditPosts(@RequestParam(value = "q", required = false) String query, Model model) {
-        List<RedditPost> posts = redditService.getConcordiaPosts();
+        List<RedditPost> posts = redditService.getConcordiaPosts(20);
 
         String trimmed = (query != null) ? query.trim() : null;
         if (trimmed != null && !trimmed.isEmpty()) {
