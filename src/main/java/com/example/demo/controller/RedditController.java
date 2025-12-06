@@ -25,10 +25,10 @@ public class RedditController {
         this.redditPostRepository = redditPostRepository;
     }
 
-    // Optional: return raw JSON if you still want it
+
     @GetMapping("/concordia")
     public String getConcordiaPosts(Model model) {
-        List<RedditPost> posts = redditService.getConcordiaPosts(20); // fetch 20 posts
+        List<RedditPost> posts = redditService.getConcordiaPosts(20);
         model.addAttribute("posts", posts);
         return "reddit"; // Thymeleaf template
     }
