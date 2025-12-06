@@ -1,29 +1,57 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "reddit_posts", indexes = {
+        @Index(name = "idx_reddit_id", columnList = "reddit_id")
+})
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RedditPost {
-    private String id;
+
+    // DB primary key
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Reddit's id (string) stored separately and unique
+    @Column(name = "reddit_id", nullable = false, unique = true, length = 64)
+    private String redditId;
+
+    @Column(nullable = false, length = 500)
     private String title;
+
+    @Column(length = 200)
     private String author;
-    private int upvotes;
+
+    @Column(name = "created_utc")
     private long createdUtc;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String selftext;
+
+    @Column(length = 1000)
     private String url;
 
-    public RedditPost() {}
-
-    public RedditPost(String title, String author, String url, String selftext) {
-        this.title = title;
-        this.author = author;
-        this.url = url;
-        this.selftext = selftext;
-    }
-
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getRedditId() {
+        return redditId;
+    }
+
+    public void setRedditId(String redditId) {
+        this.redditId = redditId;
     }
 
     public String getTitle() {
@@ -34,20 +62,12 @@ public class RedditPost {
         this.title = title;
     }
 
-    public String getUrl() {
-        return url;
+    public String getAuthor() {
+        return author;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getSelftext() {
-        return selftext;
-    }
-
-    public void setSelftext(String selftext) {
-        this.selftext = selftext;
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
     public long getCreatedUtc() {
@@ -58,20 +78,19 @@ public class RedditPost {
         this.createdUtc = createdUtc;
     }
 
-    public int getUpvotes() {
-        return upvotes;
+    public String getSelftext() {
+        return selftext;
     }
 
-    public void setUpvotes(int upvotes) {
-        this.upvotes = upvotes;
+    public void setSelftext(String selftext) {
+        this.selftext = selftext;
     }
 
-    public String getAuthor() {
-        return author;
+    public String getUrl() {
+        return url;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
-
