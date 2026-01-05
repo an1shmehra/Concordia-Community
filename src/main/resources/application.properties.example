@@ -1,0 +1,22 @@
+spring.application.name=ConcordiaApp
+
+# Reddit API Configuration
+reddit.client.id=YOUR_REDDIT_CLIENT_ID
+reddit.client.secret=YOUR_REDDIT_CLIENT_SECRET
+reddit.user.agent=concordiaApp/1.0 by YOUR_USERNAME
+reddit.access-token=YOUR_REDDIT_ACCESS_TOKEN
+
+# Database Configuration (MySQL for local, PostgreSQL for production)
+spring.datasource.url=jdbc:mysql://localhost:3306/concordia_community_app?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=your_user
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+# Hugging Face API
+huggingface.api.key=YOUR_HUGGINGFACE_API_KEY
+huggingface.api.url=https://api-inference.huggingface.co/models/google/flan-t5-base
