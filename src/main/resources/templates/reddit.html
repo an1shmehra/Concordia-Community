@@ -1,42 +1,304 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <link rel="stylesheet" th:href="@{/reddit.css}">
-    <title>r/concordia Posts</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concordia Community</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #912338;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            color: #fff;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 4px 0 0 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline-light {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: #912338;
+            border-color: white;
+        }
+
+        .btn-dark {
+            background: #912338;
+            color: white;
+            border: 2px solid #912338;
+        }
+
+        .btn-dark:hover {
+            background: #7a1d2e;
+            border-color: #7a1d2e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(145, 35, 56, 0.3);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: #912338;
+            border: 2px solid #912338;
+            font-weight: 600;
+        }
+
+        .btn-outline-primary:hover {
+            background: #912338;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(145, 35, 56, 0.3);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-outline-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
+        }
+
+        .btn-outline-info:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .post-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid #912338;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .post-item:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .post-title {
+            font-size: 19px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .post-title:hover {
+            color: #912338;
+        }
+
+        .meta {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .vote-section {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .vote-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            color: #7f8c8d;
+            transition: all 0.2s ease;
+        }
+
+        .vote-btn:hover {
+            color: #912338;
+            transform: scale(1.2);
+        }
+
+        .vote-score {
+            font-weight: 600;
+            margin: 0 8px;
+            min-width: 30px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #912338;
+            box-shadow: 0 0 0 0.2rem rgba(145, 35, 56, 0.15);
+        }
+    </style>
 </head>
 <body>
-<h1>r/concordia Posts</h1>
 
-<form th:action="@{/api/reddit/posts}" method="get" class="search-form">
-    <input type="text" name="q" placeholder="Search by title, course, or term"
-           th:value="${query}" class="search-box">
-    <button type="submit">Search</button>
-</form>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-title">
+                    <h2>Concordia Community Hub</h2>
+                    <p>Student discussions and course resources</p>
+                </div>
 
-<p th:if="${notFoundMessage}" th:text="${notFoundMessage}" class="not-found"></p>
+                <div class="user-info" sec:authorize="isAuthenticated()">
+                    <span>Hi, <strong sec:authentication="name"></strong></span>
+                    <form th:action="@{/logout}" method="post" style="display: inline; margin: 0;">
+                        <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+                    </form>
+                </div>
+                <div class="user-info" sec:authorize="!isAuthenticated()">
+                    <a href="/login" class="btn btn-sm btn-outline-light">Login</a>
+                    <a href="/register" class="btn btn-sm btn-outline-light">Register</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<ul>
-    <li th:each="post, iter : ${posts}">
-        <a th:href="@{/api/reddit/{index}(index=${iter.index})}" th:text="${post.title}"></a>
-        by <span th:text="${post.author}"></span>
-    </li>
-</ul>
+    <div class="container" style="max-width: 900px;">
 
-<script>
-    (function(){
-        var input = document.querySelector('input[name="q"]');
-        if (!input) return;
-        var last = input.value.trim();
-        input.addEventListener('input', function(){
-            var val = input.value.trim();
-            if (val === '' && last !== '') {
-                // When cleared, navigate to the base posts URL to refresh the list
-                window.location.href = '/api/reddit/posts';
-            }
-            last = val;
-        });
-    })();
-</script>
+        <!-- Search and Sort -->
+        <div class="mb-4">
+            <form th:action="@{/api/reddit/posts}" method="get">
+                <div class="input-group mb-2">
+                    <input type="text" name="q" class="form-control"
+                           placeholder="Search posts..." th:value="${query}">
+                    <select name="sort" class="form-select" style="max-width: 120px;">
+                        <option value="new" th:selected="${sort == 'new' or sort == null}">New</option>
+                        <option value="hot" th:selected="${sort == 'hot'}">Hot</option>
+                        <option value="top" th:selected="${sort == 'top'}">Top</option>
+                    </select>
+                    <button class="btn btn-dark" type="submit">Search</button>
+                    <a href="/api/reddit/create" class="btn btn-outline-primary">+ Create Post</a>
+                </div>
+            </form>
+            <p th:if="${notFoundMessage}" class="text-danger mt-2" th:text="${notFoundMessage}"></p>
+        </div>
 
+        <!-- Posts -->
+        <div th:each="post, iter : ${posts}" class="post-item">
+            <!-- Vote Section - Now visible to everyone -->
+            <div class="vote-section">
+                <form th:action="@{/api/reddit/vote/post/{redditId}(redditId=${post.redditId})}" method="post" style="display: inline;">
+                    <input type="hidden" name="voteType" value="up">
+                    <button type="submit" class="vote-btn" title="Upvote">▲</button>
+                </form>
+                <span class="vote-score" th:text="${voteScores[post.redditId]}">0</span>
+                <form th:action="@{/api/reddit/vote/post/{redditId}(redditId=${post.redditId})}" method="post" style="display: inline;">
+                    <input type="hidden" name="voteType" value="down">
+                    <button type="submit" class="vote-btn" title="Downvote">▼</button>
+                </form>
+            </div>
+
+            <a th:href="@{/api/reddit/{index}(index=${iter.index})}"
+               class="post-title" th:text="${post.title}">Post Title</a>
+
+            <!-- AI Categories (only visible to logged-in users who have categorized this post) -->
+            <div class="mt-1" th:if="${userCategories.containsKey(post.redditId)}">
+                <span th:each="cat, iterStat : ${userCategories.get(post.redditId).split(', ')}"
+                      class="badge bg-primary me-1" style="font-size: 10px;" th:text="${cat}">category</span>
+            </div>
+
+            <!-- Categorize Button (visible to everyone, but requires login to use) -->
+            <form th:action="@{/api/reddit/categorize/{redditId}(redditId=${post.redditId})}" method="post"
+                  style="display: inline;"
+                  th:if="${!userCategories.containsKey(post.redditId)}">
+                <button type="submit" class="btn btn-sm btn-outline-info mt-1" style="font-size: 11px;">
+                    🤖 Categorize with AI
+                </button>
+            </form>
+
+            <div class="meta">
+                posted by <strong th:text="${post.author}">user</strong> •
+                <span th:text="${#dates.format(new java.util.Date(post.createdUtc * 1000), 'MMM dd')}">date</span>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(posts)}" class="alert alert-info">
+            No posts found. Click "Import from Reddit" to load posts!
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import com.example.demo.model.Comment;
 import com.example.demo.model.RedditPost;
+import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,14 +25,18 @@ public class RedditService {
     private final ObjectMapper objectMapper;
     private final String userAgent;
     private final PostRepository redditPostRepository;
+    private final CommentRepository commentRepository;
 
     public RedditService(RestTemplate restTemplate,
                          RedditAuthService authService,
-                         @Value("${reddit.user.agent}") String userAgent, PostRepository redditPostRepository) {
+                         @Value("${reddit.user.agent}") String userAgent,
+                         PostRepository redditPostRepository,
+                         CommentRepository commentRepository) {
         this.restTemplate = restTemplate;
         this.authService = authService;
         this.userAgent = userAgent;
         this.redditPostRepository = redditPostRepository;
+        this.commentRepository = commentRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -309,5 +315,83 @@ public class RedditService {
         return posts;
     }
 
+    // Fetch top 3 comments for a specific post
+    public List<Comment> fetchCommentsForPost(String postId) {
+        List<Comment> comments = new ArrayList<>();
+
+        try {
+            String token = authService.getAccessToken();
+            String url = "https://oauth.reddit.com/r/concordia/comments/" + postId + "?limit=3";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            headers.set("User-Agent", userAgent);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+            // Reddit returns an array: [0] = post, [1] = comments
+            JsonNode root = objectMapper.readTree(response.getBody());
+            if (root.isArray() && root.size() > 1) {
+                JsonNode commentsListing = root.get(1);
+                JsonNode commentsData = commentsListing.path("data").path("children");
+
+                int count = 0;
+                for (JsonNode commentNode : commentsData) {
+                    if (count >= 3) break;  // Only top 3
+
+                    JsonNode data = commentNode.path("data");
+                    String kind = commentNode.path("kind").asText("");
+
+                    // Skip "more" type nodes
+                    if (!"t1".equals(kind)) continue;
+
+                    Comment comment = new Comment();
+                    comment.setRedditCommentId(data.path("id").asText(""));
+                    comment.setPostRedditId(postId);
+                    comment.setAuthor(data.path("author").asText("[deleted]"));
+                    comment.setBody(data.path("body").asText(""));
+                    comment.setCreatedUtc(data.path("created_utc").asLong(0L));
+                    comment.setScore(data.path("score").asInt(0));
+
+                    comments.add(comment);
+                    count++;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error fetching comments for post " + postId + ": " + e.getMessage());
+        }
+
+        return comments;
+    }
+
+    // Import comments for all existing posts (top 3 per post)
+    @Transactional
+    public int importCommentsForAllPosts() {
+        List<RedditPost> posts = redditPostRepository.findAll();
+        int totalSaved = 0;
+
+        for (RedditPost post : posts) {
+            List<Comment> comments = fetchCommentsForPost(post.getRedditId());
+
+            for (Comment comment : comments) {
+                // Check if comment already exists
+                if (comment.getRedditCommentId() != null && !comment.getRedditCommentId().isEmpty()) {
+                    commentRepository.save(comment);
+                    totalSaved++;
+                }
+            }
+
+            // Be nice to Reddit API
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        return totalSaved;
+    }
 
 }

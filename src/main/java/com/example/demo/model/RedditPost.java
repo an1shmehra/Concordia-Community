@@ -38,6 +38,9 @@ public class RedditPost {
     @Column(length = 1000)
     private String url;
 
+    @Column(columnDefinition = "TEXT")
+    private String categories;
+
     public Long getId() {
         return id;
     }
@@ -92,5 +95,13 @@ public class RedditPost {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getCategories() {
+        return categories;
+    }
+
+    public void setCategories(String categories) {
+        this.categories = categories;
     }
 }

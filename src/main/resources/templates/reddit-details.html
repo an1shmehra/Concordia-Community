@@ -1,17 +1,129 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <link rel="stylesheet" th:href="@{/reddit-details.css}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${post.title}">Post Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body { background: #f6f7f8; padding-top: 20px; }
+        .header { background: #912338; color: white; padding: 15px 0; margin-bottom: 25px; }
+        .post-container { background: white; padding: 25px; border-radius: 5px; }
+        .comments-section { background: white; padding: 20px; border-radius: 5px; margin-top: 15px; }
+        .comment-box { background: #f9f9f9; padding: 12px; margin: 8px 0; border-left: 2px solid #ccc; }
+        .vote-section {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .vote-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 4px;
+            color: #888;
+        }
+        .vote-btn:hover {
+            color: #912338;
+        }
+        .vote-score {
+            font-weight: bold;
+            margin: 0 4px;
+            min-width: 25px;
+            text-align: center;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-<h1 th:text="${post.title}"></h1>
-<p>by <strong th:text="${post.author}"></strong></p>
-<p th:if="${post.selftext}"><strong>Description:</strong> <span th:text="${post.selftext}"></span></p>
-<p>
-    <strong>Original URL:</strong>
-    <a th:href="${post.url}" target="_blank" th:text="${post.url}"></a>
-</p>
-<p><a th:href="@{/api/reddit/posts}">Back to list</a></p>
+
+    <div class="header">
+        <div class="container">
+            <h2>Concordia Community Hub</h2>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 900px;">
+        <a href="/api/reddit/posts" class="btn btn-sm btn-outline-dark mb-3">← Back to posts</a>
+
+        <div class="post-container">
+            <h3 th:text="${post.title}">Post Title</h3>
+
+            <p class="text-muted">
+                Posted by <strong th:text="${post.author}">author</strong> •
+                <span th:text="${#dates.format(new java.util.Date(post.createdUtc * 1000), 'MMMM dd, yyyy')}">date</span>
+            </p>
+
+            <hr>
+
+            <!-- Show text content if exists -->
+            <div th:if="${post.selftext != null and !post.selftext.isEmpty()}">
+                <p th:text="${post.selftext}" style="white-space: pre-wrap;"></p>
+            </div>
+
+            <!-- If no text, show a message -->
+            <div th:unless="${post.selftext != null and !post.selftext.isEmpty()}">
+                <p class="text-muted fst-italic">No text content - this is a link-only post</p>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h5>Comments <span class="badge bg-secondary" th:text="${#lists.size(comments)}">0</span></h5>
+            <hr>
+
+            <!-- If no comments yet -->
+            <div th:if="${#lists.isEmpty(comments)}" class="alert alert-light">
+                <p class="mb-0 text-muted">No comments on this post yet.</p>
+            </div>
+
+            <!-- Show real comments -->
+            <div th:each="comment : ${comments}" class="comment-box">
+                <div>
+                    <strong th:text="${comment.author}">user</strong>
+                    <span class="text-muted"> • <span th:text="${#dates.format(new java.util.Date(comment.createdUtc * 1000), 'MMM dd')}">date</span></span>
+
+                    <!-- Vote buttons - Now visible to everyone -->
+                    <span class="vote-section">
+                        <form th:action="@{/api/reddit/vote/comment/{commentId}(commentId=${comment.id})}" method="post" style="display: inline;">
+                            <input type="hidden" name="postRedditId" th:value="${post.redditId}">
+                            <input type="hidden" name="voteType" value="up">
+                            <button type="submit" class="vote-btn" title="Upvote">▲</button>
+                        </form>
+                        <span class="vote-score" th:text="${commentVoteScores[comment.id]}">0</span>
+                        <form th:action="@{/api/reddit/vote/comment/{commentId}(commentId=${comment.id})}" method="post" style="display: inline;">
+                            <input type="hidden" name="postRedditId" th:value="${post.redditId}">
+                            <input type="hidden" name="voteType" value="down">
+                            <button type="submit" class="vote-btn" title="Downvote">▼</button>
+                        </form>
+                    </span>
+                </div>
+                <p class="mb-0 mt-2" th:text="${comment.body}">Comment text here</p>
+            </div>
+
+            <!-- Add Comment Form -->
+            <div class="mt-4">
+                <h6>Add a Comment</h6>
+                <form th:action="@{/api/reddit/comment/add}" method="post">
+                    <input type="hidden" name="postRedditId" th:value="${post.redditId}">
+
+                    <div class="mb-3" sec:authorize="isAuthenticated()">
+                        <p class="text-muted">Posting as <strong sec:authentication="name"></strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="body" class="form-label">Comment</label>
+                        <textarea class="form-control" id="body" name="body" rows="3" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
