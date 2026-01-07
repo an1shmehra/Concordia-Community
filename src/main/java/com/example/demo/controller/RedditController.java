@@ -115,9 +115,9 @@ public class RedditController {
         // GET FROM DATABASE - Simple approach without pagination
         List<RedditPost> posts = redditPostRepository.findAll();
 
-        // Sort by newest first and limit to 250
+        // Sort by newest first and limit to 50
         posts.sort((a, b) -> Long.compare(b.getCreatedUtc(), a.getCreatedUtc()));
-        posts = posts.stream().limit(250).collect(Collectors.toList());
+        posts = posts.stream().limit(50).collect(Collectors.toList());
 
         String trimmed = (query != null) ? query.trim() : null;
         if (trimmed != null && !trimmed.isEmpty()) {
@@ -220,7 +220,7 @@ public class RedditController {
         // Get from database - simple approach
         List<RedditPost> posts = redditPostRepository.findAll();
         posts.sort((a, b) -> Long.compare(b.getCreatedUtc(), a.getCreatedUtc()));
-        posts = posts.stream().limit(250).collect(Collectors.toList());
+        posts = posts.stream().limit(50).collect(Collectors.toList());
 
         if (index >= 0 && index < posts.size()) {
             RedditPost post = posts.get(index);
