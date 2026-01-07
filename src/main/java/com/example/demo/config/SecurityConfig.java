@@ -26,14 +26,15 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // Public pages (anyone can view)
-                        .requestMatchers("/", "/api/reddit/posts", "/api/reddit/*", "/login", "/register", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/api/reddit/posts", "/api/reddit/posts/**", "/api/reddit/[0-9]+", "/api/reddit/stats", "/login", "/register", "/css/**", "/js/**", "/api/reddit/concordia").permitAll()
                         // Protected pages (must be logged in)
-                        .requestMatchers("/api/reddit/create", "/api/reddit/comment/add").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/reddit/create", "/api/reddit/comment/add", "/api/reddit/vote/**", "/api/reddit/categorize/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/api/reddit/posts", true)
+                        .failureUrl("/login?error=true")
                         .permitAll()
                 )
                 .logout(logout -> logout
