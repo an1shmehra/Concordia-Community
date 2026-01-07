@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/anishmehra/.fly/bin/flyctl ssh console --app concordia-community -C \"ping -c 3 db.wpsjydytwxrefmsnwfrr.supabase.co\")",
+      "Bash(/Users/anishmehra/.fly/bin/flyctl deploy:*)",
+      "Bash(time curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

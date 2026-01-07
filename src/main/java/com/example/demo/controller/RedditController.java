@@ -2,10 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Comment;
 import com.example.demo.model.RedditPost;
+import com.example.demo.model.UserPostCategory;
 import com.example.demo.model.Vote;
 import com.example.demo.model.VoteType;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
+import com.example.demo.repository.UserPostCategoryRepository;
 import com.example.demo.repository.VoteRepository;
 import com.example.demo.service.RedditService;
 import org.springframework.http.ResponseEntity;
@@ -110,8 +112,14 @@ public class RedditController {
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
             java.security.Principal principal,
             Model model) {
-        // GET FROM DATABASE instead of Reddit API
-        List<RedditPost> posts = redditPostRepository.findAll();
+        // GET FROM DATABASE - Load ALL posts, sort by newest, then limit to 250
+        List<RedditPost> allPosts = redditPostRepository.findAll();
+        allPosts.sort((a, b) -> Long.compare(b.getCreatedUtc(), a.getCreatedUtc()));
+
+        // Limit to 250 most recent posts (Neon free tier can handle this!)
+        List<RedditPost> posts = allPosts.stream()
+                .limit(250)
+                .collect(Collectors.toList());
 
         String trimmed = (query != null) ? query.trim() : null;
         if (trimmed != null && !trimmed.isEmpty()) {
@@ -129,11 +137,22 @@ public class RedditController {
             }
         }
 
-        // Calculate vote scores for each post
+        // BATCH QUERY: Get ALL vote scores in ONE query instead of 250 individual queries!
+        List<String> postIds = posts.stream().map(RedditPost::getRedditId).collect(Collectors.toList());
         Map<String, Long> voteScores = new HashMap<>();
+
+        if (!postIds.isEmpty()) {
+            List<Object[]> scoresFromDB = voteRepository.calculatePostScoresBatch(postIds);
+            for (Object[] row : scoresFromDB) {
+                String postId = (String) row[0];
+                Long score = ((Number) row[1]).longValue();
+                voteScores.put(postId, score);
+            }
+        }
+
+        // Set default score of 0 for posts with no votes
         for (RedditPost post : posts) {
-            long score = voteRepository.calculatePostScore(post.getRedditId());
-            voteScores.put(post.getRedditId(), score);
+            voteScores.putIfAbsent(post.getRedditId(), 0L);
         }
 
         // Apply sorting
@@ -169,13 +188,13 @@ public class RedditController {
                 break;
         }
 
-        // Fetch user-specific categories
+        // BATCH QUERY: Fetch user-specific categories for all posts in ONE query!
         Map<String, String> userCategories = new HashMap<>();
         if (principal != null) {
             String username = principal.getName();
-            for (RedditPost post : posts) {
-                userPostCategoryRepository.findByUsernameAndPostRedditId(username, post.getRedditId())
-                        .ifPresent(upc -> userCategories.put(post.getRedditId(), upc.getCategories()));
+            List<UserPostCategory> userCategoriesList = userPostCategoryRepository.findByUsernameAndPostRedditIdIn(username, postIds);
+            for (UserPostCategory upc : userCategoriesList) {
+                userCategories.put(upc.getPostRedditId(), upc.getCategories());
             }
         }
 

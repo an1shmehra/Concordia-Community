@@ -35,4 +35,9 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Query("SELECT COALESCE(SUM(CASE WHEN v.voteType = 'UP' THEN 1 WHEN v.voteType = 'DOWN' THEN -1 ELSE 0 END), 0) " +
            "FROM Vote v WHERE v.commentId = :commentId")
     long calculateCommentScore(@Param("commentId") Long commentId);
+
+    // BATCH: Get all vote scores for multiple posts at once (HUGE performance boost!)
+    @Query("SELECT v.postRedditId, SUM(CASE WHEN v.voteType = 'UP' THEN 1 WHEN v.voteType = 'DOWN' THEN -1 ELSE 0 END) " +
+           "FROM Vote v WHERE v.postRedditId IN :postIds GROUP BY v.postRedditId")
+    java.util.List<Object[]> calculatePostScoresBatch(@Param("postIds") java.util.List<String> postIds);
 }
