@@ -10,6 +10,7 @@ import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserPostCategoryRepository;
 import com.example.demo.repository.VoteRepository;
 import com.example.demo.service.RedditService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -112,10 +113,9 @@ public class RedditController {
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
             java.security.Principal principal,
             Model model) {
-        // OPTIMIZED: Fetch only top 50 posts directly from database using pagination!
-        // This is 20x faster than loading all 1000 posts and filtering in Java
+        // GET FROM DATABASE - Use pagination to fetch only top 250 posts
         List<RedditPost> posts = redditPostRepository.findTopPostsByCreatedUtc(
-                org.springframework.data.domain.PageRequest.of(0, 50)
+                PageRequest.of(0, 250)
         );
 
         String trimmed = (query != null) ? query.trim() : null;
@@ -216,9 +216,9 @@ public class RedditController {
 
     @GetMapping("/{index}")
     public String postDetails(@PathVariable int index, Model model) {
-        // OPTIMIZED: Get top 50 posts using pagination (matches main page)
+        // Get from database using pagination (matches main page)
         List<RedditPost> posts = redditPostRepository.findTopPostsByCreatedUtc(
-                org.springframework.data.domain.PageRequest.of(0, 50)
+                PageRequest.of(0, 250)
         );
 
         if (index >= 0 && index < posts.size()) {

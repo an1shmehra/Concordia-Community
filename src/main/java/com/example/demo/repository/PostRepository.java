@@ -12,7 +12,6 @@ public interface
         PostRepository extends JpaRepository<RedditPost, Long> {
     Optional<RedditPost> findByRedditId(String redditId);
 
-    // Fetch top N posts ordered by createdUtc DESC (newest first) using database pagination
     @Query("SELECT p FROM RedditPost p ORDER BY p.createdUtc DESC")
     List<RedditPost> findTopPostsByCreatedUtc(Pageable pageable);
 }
