@@ -20,6 +20,11 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/api/reddit/posts";
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";

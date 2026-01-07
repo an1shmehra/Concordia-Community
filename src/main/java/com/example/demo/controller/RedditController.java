@@ -10,7 +10,6 @@ import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserPostCategoryRepository;
 import com.example.demo.repository.VoteRepository;
 import com.example.demo.service.RedditService;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -113,10 +112,12 @@ public class RedditController {
             @RequestParam(value = "sort", required = false, defaultValue = "new") String sort,
             java.security.Principal principal,
             Model model) {
-        // GET FROM DATABASE - Use pagination to fetch only top 250 posts
-        List<RedditPost> posts = redditPostRepository.findTopPostsByCreatedUtc(
-                PageRequest.of(0, 250)
-        );
+        // GET FROM DATABASE - Simple approach without pagination
+        List<RedditPost> posts = redditPostRepository.findAll();
+
+        // Sort by newest first and limit to 250
+        posts.sort((a, b) -> Long.compare(b.getCreatedUtc(), a.getCreatedUtc()));
+        posts = posts.stream().limit(250).collect(Collectors.toList());
 
         String trimmed = (query != null) ? query.trim() : null;
         if (trimmed != null && !trimmed.isEmpty()) {
@@ -216,10 +217,10 @@ public class RedditController {
 
     @GetMapping("/{index}")
     public String postDetails(@PathVariable int index, Model model) {
-        // Get from database using pagination (matches main page)
-        List<RedditPost> posts = redditPostRepository.findTopPostsByCreatedUtc(
-                PageRequest.of(0, 250)
-        );
+        // Get from database - simple approach
+        List<RedditPost> posts = redditPostRepository.findAll();
+        posts.sort((a, b) -> Long.compare(b.getCreatedUtc(), a.getCreatedUtc()));
+        posts = posts.stream().limit(250).collect(Collectors.toList());
 
         if (index >= 0 && index < posts.size()) {
             RedditPost post = posts.get(index);
