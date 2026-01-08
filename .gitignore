@@ -34,3 +34,7 @@ build/
 
 src/main/resources/application.properties
 set-secrets.sh
+cookies.txt
+*.txt
+*.log
+fly.toml
